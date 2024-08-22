@@ -49,7 +49,7 @@
 
 <br/>
 <br/>
----
+<hr>
 
 # 섹션2-오브젝트와 의존관계
 # 오브젝트와 의존관계
@@ -58,12 +58,14 @@
 - OOP, 객체, 클래스?
 
 <br/>
+
 ## 클래스와 오브젝트
 
 - **오브젝트**? 프로그램을 실행하면 만들어져서 동작하는 것.
 - **클래스**? 오브젝트를 만들어내기 위해서 필요한 것. 우리가 작성하는 코드(청사진, 설계도)
 
 <br/>
+
 ## 클래스의 인스턴스 = 오브젝트
 
 ### Class Instance
@@ -73,6 +75,7 @@
 - 자바에서는 배열(Array)도 오브젝트
 
 <br/>
+
 ## 의존관계
 
 ### Dependency
@@ -80,6 +83,7 @@
 - A → B : A가 B에 의존한다.
 
 <br/>
+
 ### 의존관계 2가지 관점
 
 1. **Class 사이의 의존관계(Class 레벨의 의존관계, Code 레벨의 의존관계)**
@@ -96,8 +100,10 @@
     - 프로그램을 실행하는 런타임 환경에서 의존관계가 만들어짐
 
 **⭐️  클래스 레벨의 의존관계와 런타임 레벨의 의존관계가 다를 수 있음‼️ ⭐️**
+
 <br/>
 <br/>
+
 # 관심사의 분리
 ## 코드 개선 방법
 
@@ -106,6 +112,7 @@
 2. 기능은 건들지 않고 내부 코드 구조 개션하는 방법(<span>$\color{#DD6565}\text{리팩토링}$</span>)
 
 <br/>
+
 ## 주석을 삭제
 
 주석이 나쁘다는 것이 아니지만 주석을 보지 않더라도 코드를 읽으면 이해할 수 있게 만들라는 뜻
@@ -139,6 +146,7 @@ LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
 
 <br/>
 <br/>
+
 ## 관심사의 분리
 
 ### Separation of Concerns(SoC)
@@ -178,6 +186,7 @@ LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
     
 
 <br/>
+
 ### 분리하는 가장 쉬운 방법?
 
 1. 메서드 분리(메서드 추출)
@@ -237,8 +246,10 @@ LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
         return exRate;
     }
     ```
+    
 <br/>
 <br/>
+
 # 상속을 통한 확장
 ## 메서드 분리 작업을 한 코드
 
@@ -290,6 +301,7 @@ public class PaymentService {
 - **상속**을 이용
 
 <br/>
+
 ## 상속
 
 기존의 코드를 건들지 않아도 기능을 확장해서 사용할 수 있도록 해줌
@@ -367,6 +379,7 @@ abstract public class PaymentService {
 }
 ```
 <br/>
+
 ### 환율을 가져오는 시스템을 변경하고 싶다면?
 
 `PaymentService`를 상속받아서 구현하도록 하면 됨
@@ -403,6 +416,7 @@ abstract public class PaymentService {
 
     
 <br/>
+
 ## PaymetService의 문제점
 
 `absrtract` 메서드가 추가가 된다면?

@@ -9,6 +9,7 @@
 - [섹션2-오브젝트와 의존관계](#섹션2-오브젝트와-의존관계)
     - [오브젝트와 의존관계](#오브젝트와-의존관계)
     - [관심사의 분리](#관심사의-분리)
+    - [상속을 통한 확장](#상속을-통한-확장)
 
 ---
 
@@ -219,3 +220,174 @@ LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
         return exRate;
     }
     ```
+
+# 상속을 통한 확장
+## 메서드 분리 작업을 한 코드
+
+```java
+public class PaymentService {
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+        BigDecimal exRate = getExRate(currency);
+        BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+        LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+
+        return new Payment(orderId, currency, foreginCurrencyAmount, exRate, convertedAmount, validUntil);
+    }
+
+    private static BigDecimal getExRate(String currency) throws IOException {
+        URL url = new URL("https://open.er-api.com/v6/latest/" + currency);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String response = br.lines().collect(Collectors.joining()); // lines() : BufferedReader에서 들어오는걸 Stream 타입으로 계속 가져오게 할 수 있는 것(java8 이후)
+        br.close();
+
+        // ObjectMapper : JSON 컨텐츠를 Java 객체로 역직렬롸 하거나 Java 객체를 JSON으로 직렬화 할 때 사용
+        ObjectMapper mapper = new ObjectMapper(); // ObjectMapper : Jackson 라이브러리의 클래스
+        ExRateData data = mapper.readValue(response, ExRateData.class);
+        BigDecimal exRate = data.rates().get("KRW");
+        System.out.println(exRate);
+        return exRate;
+    }
+    
+    public static void main(String[] args) throws IOException {
+        PaymentService paymentService = new PaymentService();
+        Payment payment = paymentService.prepare(100L, "USD", BigDecimal.valueOf(50.7));
+        System.out.println(payment);
+    }
+}
+```
+
+그러나 클래스의 관점으로 바라봤을 때 아직 두개의 다른 관심사를 가지고 있음
+
+⇒ 변경이 되어야하는 시점과 이유가 다르기 때문에 클래스 밖으로 분리해야 될 필요가 있음
+
+**클래스 밖으로 분리해야 되는 이유?**
+
+1. **재사용 관점**
+- 한 번 만들어진 자기 기능에 충실한 코드가 있다면 소스코드를 건드리지 않더라도 그대로 사용할 수 있어야 됨
+- `PaymentService`는 환율을 가져오는 방식, 정책 등 매커니즘이 변경되면 계속해서 고쳐야 되기 때문에 클래스 밖으로 분리해야 되는 것
+
+1. **확장성 관점**
+- 사용하는 측에서 환율 정보를 가져오는 방법이 각각 다른경우 `prepare`메서드를 각각 고쳐서 사용하는 것이 아닌 환율정보를 가져오는 코드를 밖으로 분리해내고 `PaymetService` 클래스는 변경이 되지 않아도 `getExRate()`가 바뀌어도 상관이 없도록 변경해야 됨
+- **상속**을 이용
+
+## 상속
+
+기존의 코드를 건들지 않아도 기능을 확장해서 사용할 수 있도록 해줌
+
+> 상속을 통해 유연한 확장을 하는 대표적인 디자인 패턴 :
+TempleteMethod Pattern, FactoryMethod Pattern
+> 
+
+**변경 전**
+
+```java
+private static BigDecimal getExRate(String currency) throws IOException {
+    URL url = new URL("https://open.er-api.com/v6/latest/" + currency);
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+    String response = br.lines().collect(Collectors.joining()); // lines() : BufferedReader에서 들어오는걸 Stream 타입으로 계속 가져오게 할 수 있는 것(java8 이후)
+    br.close();
+
+    // ObjectMapper : JSON 컨텐츠를 Java 객체로 역직렬롸 하거나 Java 객체를 JSON으로 직렬화 할 때 사용
+    ObjectMapper mapper = new ObjectMapper(); // ObjectMapper : Jackson 라이브러리의 클래스
+    ExRateData data = mapper.readValue(response, ExRateData.class);
+    BigDecimal exRate = data.rates().get("KRW");
+    System.out.println(exRate);
+    return exRate;
+}
+```
+
+**변경 후**
+
+```java
+abstract BigDecimal getExRate(String currency) throws IOException;
+```
+
+`getExRate`메서드의 내용을 `WebApiExRatePaymentService`로 분리
+
+```java
+public class WebApiExRatePaymentService extends PaymentService {
+
+    @Override
+    BigDecimal getExRate(String currency) throws IOException {
+        URL url = new URL("https://open.er-api.com/v6/latest/" + currency);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String response = br.lines().collect(Collectors.joining());
+        br.close();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ExRateData data = mapper.readValue(response, ExRateData.class);
+        BigDecimal exRate = data.rates().get("KRW");
+        System.out.println(exRate);
+        return exRate;
+    }
+}
+```
+
+`PaymentService`
+
+```java
+abstract public class PaymentService {
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+        BigDecimal exRate = getExRate(currency);
+        BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+        LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+
+        return new Payment(orderId, currency, foreginCurrencyAmount, exRate, convertedAmount, validUntil);
+    }
+
+    abstract BigDecimal getExRate(String currency) throws IOException;
+
+    public static void main(String[] args) throws IOException {
+        PaymentService paymentService = new WebApiExRatePaymentService();
+        Payment payment = paymentService.prepare(100L, "USD", BigDecimal.valueOf(50.7));
+        System.out.println(payment);
+    }
+}
+```
+
+### 환율을 가져오는 시스템을 변경하고 싶다면?
+
+`PaymentService`를 상속받아서 구현하도록 하면 됨
+
+- 환율 정책이 변경된 경우 테스트
+    
+    `SimpleExRatePaymentService`
+    
+    ```java
+    public class SimpleExRatePaymentService extends PaymentService {
+        @Override
+        BigDecimal getExRate(String currency) throws IOException {
+            if (currency.equals("USD")) return BigDecimal.valueOf(1000);
+    
+            throw new IllegalArgumentException("지원되지 않는 통화입니다.");
+        }
+    }
+    
+    ```
+    
+    `Client` ← Client 측만 변경해 주면 됨
+    
+    ```java
+    public class Client {
+        public static void main(String[] args) throws IOException {
+            PaymentService paymentService = new SimpleExRatePaymentService();
+            Payment payment = paymentService.prepare(100L, "USD", BigDecimal.valueOf(50.7));
+            System.out.println(payment);
+        }
+    }
+    ```
+    
+    ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a7e1e85e-d6f9-43d3-8475-0933babeaf4a/7a2e3162-a189-4f65-b10e-0e7adecc889b/image.png)
+    
+
+## PaymetService의 문제점
+
+`absrtract` 메서드가 추가가 된다면?
+
+- 상속하는 클래스들이 2개의 메서드를 구현해야 됨 ⇒ 수많은 조합들이 만들어져야 됨
+- 구현에 따라서 클래스명이 너무 길어지게 됨
+
+**⇒ 장기적인 관점으로 바라봤을 때 상속을 통한 확장은 `PaymentService`에 적합하지 않음**

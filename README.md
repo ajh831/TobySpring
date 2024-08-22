@@ -12,6 +12,7 @@
     - [오브젝트와 의존관계](#오브젝트와-의존관계)
     - [관심사의 분리](#관심사의-분리)
     - [상속을 통한 확장](#상속을-통한-확장)
+    - [클래스의 분리](#클래스의-분리)
 <br/>
 <br/>
 <hr>
@@ -446,3 +447,124 @@ abstract public class PaymentService {
 <br/>
 
 **⇒ 장기적인 관점으로 바라봤을 때 상속을 통한 확장은 `PaymentService`에 적합하지 않음**
+
+<br/>
+
+# 관심사 분리 과정
+## 1. 메서드 추출
+
+![image](https://github.com/user-attachments/assets/a890afb2-5bbc-42e7-833f-94d677408315)
+
+
+<br/>
+
+## 2. 상속을 통한 확장
+
+![image](https://github.com/user-attachments/assets/23ee486c-a4af-4d06-8bce-2b0b31b26d20)
+
+<br/>
+
+⭐️ **PaymentService는 재사용**하면서 **내부**적인 **기능**은 **확장**하고 **변경**하도록 하는 방법? **클래스를 분리**한다. ⭐️
+
+<br/>
+
+# 클래스의 분리
+
+![image](https://github.com/user-attachments/assets/092d945a-3e99-4ae2-86c8-28aad00585fe)
+
+
+상속을 하는 것이 아니기 때문에 **의존관계**가 만들어지게 됨
+
+<br/>
+
+`PaymentService`
+
+```java
+public class PaymentService {
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+        WebApiExRateProvider exRateProvider = new WebApiExRateProvider();
+        BigDecimal exRate = exRateProvider.getWebExRate(currency);
+        BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+        LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+
+        return new Payment(orderId, currency, foreginCurrencyAmount, exRate, convertedAmount, validUntil);
+    }
+}
+```
+
+환율이 필요하면 환율을 제공해주는 다른 클래스의 도움을 받아서 사용하도록 변경 됨
+
+<br/>
+
+추가적으로 수정을 해준다면 `prepare` 메서드가 호출될 때마다 객체가 만들어지게 코드가 작성되어 있으므로 한 번만 만들고 재사용하도록 인스턴스 변수로 변경
+
+```java
+public class PaymentService {
+    private final WebApiExRateProvider exRateProvider;
+
+    public PaymentService() {
+        this.exRateProvider = new WebApiExRateProvider();
+    }
+
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+        BigDecimal exRate = exRateProvider.getWebExRate(currency);
+        BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+        LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+
+        return new Payment(orderId, currency, foreginCurrencyAmount, exRate, convertedAmount, validUntil);
+    }
+}
+```
+
+<br/>
+
+시간이 지나면서 변경, 확장을 하게되면 어떤일이 일어날까?
+
+상속을 통해서 확장을 했을 때 기대한 점은 환율 정보를 가져오는 분리된 관심사와 책임이 변경되더라도 `PaymentService`가 변경이 일어나지 않도록 하는 것이였음
+
+하지만 지금의 코드에서 `WebApiExRateProvider` 를 `SimpleExRateProvider`로 변경하려면
+
+```java
+    private final WebApiExRateProvider exRateProvider;vider;
+```
+
+```java
+    public PaymentService() {
+        this.exRateProvider = new WebApiExRateProvider();
+    }
+```
+
+```java
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+        BigDecimal exRate = exRateProvider.getWebExRate(currency);
+				
+				...
+				
+    }
+```
+
+생성자 내부의 객체 객체 생성 부분, 인스턴스 변수의 타입, 사용하는 쪽의 코드를 변경해 줘야됨
+
+<br/>
+
+```java
+public class PaymentService {
+    private final SimpleExRateProvider exRateProvider;
+
+    public PaymentService() {
+        this.exRateProvider = new SimpleExRateProvider();
+    }
+
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+        BigDecimal exRate = exRateProvider.getExRate(currency);
+        BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+        LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+
+        return new Payment(orderId, currency, foreginCurrencyAmount, exRate, convertedAmount, validUntil);
+    }
+}
+```
+
+매번 변경을 해줘야 되기 때문에 상속보다 더 좋지 않음!!!
+
+이러한 문제를 해결하기 위해서는 인터페이스를 도입하는 방법이 있음

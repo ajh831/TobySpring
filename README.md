@@ -1,6 +1,8 @@
 # 토비의 스프링 6 - 이해와 원리
 토비의 스프링 6 - 이해와 원리 강의를 들으며 공부하는 내용을 업로드 합니다.
 
+<br/>
+<br/>
 ---
 
 # 강의자료 목차
@@ -10,7 +12,8 @@
     - [오브젝트와 의존관계](#오브젝트와-의존관계)
     - [관심사의 분리](#관심사의-분리)
     - [상속을 통한 확장](#상속을-통한-확장)
-
+<br/>
+<br/>
 ---
 
 # 섹션1-스프링 개발 시작하기
@@ -25,7 +28,7 @@
 - PaymentService.prepare() 메소드로 개발
     - Payment 오브젝트 리턴
     
-
+<br/>
 ## 개발방법
 
 - 빠르게 완성해서 가장 간단한 방법을 찾는다
@@ -33,6 +36,7 @@
 - 조금씩 기능을 추가하고 다시 검증한다
 - 코드를 한눈에 이해하기 힘들다면 코멘트로 설명을 달아준다
 
+<br/>
 ### 환율 가져오기
 
 - https://open.er-api.com/v6/lastest/{기준통화} 이용
@@ -41,6 +45,8 @@
     - JSON 자바 오브젝트로 변환
         - Jackson 프로젝트의 ObjectMapper 사용
 
+<br/>
+<br/>
 ---
 
 # 섹션2-오브젝트와 의존관계
@@ -49,11 +55,13 @@
 
 - OOP, 객체, 클래스?
 
+<br/>
 ## 클래스와 오브젝트
 
 - **오브젝트**? 프로그램을 실행하면 만들어져서 동작하는 것.
 - **클래스**? 오브젝트를 만들어내기 위해서 필요한 것. 우리가 작성하는 코드(청사진, 설계도)
 
+<br/>
 ## 클래스의 인스턴스 = 오브젝트
 
 ### Class Instance
@@ -62,12 +70,14 @@
     - 클래스를 가지고 실체화한 것
 - 자바에서는 배열(Array)도 오브젝트
 
+<br/>
 ## 의존관계
 
 ### Dependency
 
 - A → B : A가 B에 의존한다.
 
+<br/>
 ### 의존관계 2가지 관점
 
 1. **Class 사이의 의존관계(Class 레벨의 의존관계, Code 레벨의 의존관계)**
@@ -84,7 +94,8 @@
     - 프로그램을 실행하는 런타임 환경에서 의존관계가 만들어짐
 
 **⭐️  클래스 레벨의 의존관계와 런타임 레벨의 의존관계가 다를 수 있음‼️ ⭐️**
-
+<br/>
+<br/>
 # 관심사의 분리
 ## 코드 개선 방법
 
@@ -92,6 +103,7 @@
     - 기능 추가 또는 삭제
 2. 기능은 건들지 않고 내부 코드 구조 개션하는 방법(<span>$\color{#DD6565}\text{리팩토링}$</span>)
 
+<br/>
 ## 주석을 삭제
 
 주석이 나쁘다는 것이 아니지만 주석을 보지 않더라도 코드를 읽으면 이해할 수 있게 만들라는 뜻
@@ -123,6 +135,8 @@ BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
 LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
 ```
 
+<br/>
+<br/>
 ## 관심사의 분리
 
 ### Separation of Concerns(SoC)
@@ -161,6 +175,7 @@ LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
     ⇒ 변경의 이유와 시점이 다른 코드를 같이 두면 좋지 않음 → 분리!!!!!
     
 
+<br/>
 ### 분리하는 가장 쉬운 방법?
 
 1. 메서드 분리(메서드 추출)
@@ -220,7 +235,8 @@ LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
         return exRate;
     }
     ```
-
+<br/>
+<br/>
 # 상속을 통한 확장
 ## 메서드 분리 작업을 한 코드
 
@@ -271,6 +287,7 @@ public class PaymentService {
 - 사용하는 측에서 환율 정보를 가져오는 방법이 각각 다른경우 `prepare`메서드를 각각 고쳐서 사용하는 것이 아닌 환율정보를 가져오는 코드를 밖으로 분리해내고 `PaymetService` 클래스는 변경이 되지 않아도 `getExRate()`가 바뀌어도 상관이 없도록 변경해야 됨
 - **상속**을 이용
 
+<br/>
 ## 상속
 
 기존의 코드를 건들지 않아도 기능을 확장해서 사용할 수 있도록 해줌
@@ -347,7 +364,7 @@ abstract public class PaymentService {
     }
 }
 ```
-
+<br/>
 ### 환율을 가져오는 시스템을 변경하고 싶다면?
 
 `PaymentService`를 상속받아서 구현하도록 하면 됨
@@ -380,9 +397,10 @@ abstract public class PaymentService {
     }
     ```
     
-    ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a7e1e85e-d6f9-43d3-8475-0933babeaf4a/7a2e3162-a189-4f65-b10e-0e7adecc889b/image.png)
-    
+    ![image](https://github.com/user-attachments/assets/3d011faa-cbb9-4b80-b7fd-2c326d6b63f4)
 
+    
+<br/>
 ## PaymetService의 문제점
 
 `absrtract` 메서드가 추가가 된다면?

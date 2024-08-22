@@ -20,9 +20,10 @@ public class PaymentService {
         URL url = new URL("https://open.er-api.com/v6/latest/" + currency);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String response = br.lines().collect(Collectors.joining());
+        String response = br.lines().collect(Collectors.joining()); // lines() : BufferedReader에서 들어오는걸 Stream 타입으로 계속 가져오게 할 수 있는 것(java8 이후)
         br.close();
 
+        // ObjectMapper : JSON 컨텐츠를 Java 객체로 역직렬롸 하거나 Java 객체를 JSON으로 직렬화 할 때 사용
         ObjectMapper mapper = new ObjectMapper(); // ObjectMapper : Jackson 라이브러리의 클래스
         ExRateData data = mapper.readValue(response, ExRateData.class);
         BigDecimal exRate = data.rates().get("KRW");

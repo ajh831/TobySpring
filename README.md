@@ -5,7 +5,10 @@
 
 ## 강의자료 목차
 - [섹션1-스프링 개발 시작하기](#섹션1-스프링-개발-시작하기)
+    - [PaymentService](#PaymentService)
 - [섹션2-오브젝트와 의존관계](#섹션2-오브젝트와-의존관계)
+    - [오브젝트와 의존관계](#오브젝트와-의존관계)
+    - [관심사의 분리](#관심사의-분리)
 
 ---
 
@@ -40,30 +43,31 @@
 ---
 
 ## 섹션2-오브젝트와 의존관계
-### 오브젝트
+### 오브젝트와 의존관계
+#### 오브젝트
 
 - OOP, 객체, 클래스?
 
-### 클래스와 오브젝트
+#### 클래스와 오브젝트
 
 - **오브젝트**? 프로그램을 실행하면 만들어져서 동작하는 것.
 - **클래스**? 오브젝트를 만들어내기 위해서 필요한 것. 우리가 작성하는 코드(청사진, 설계도)
 
-### 클래스의 인스턴스 = 오브젝트
+#### 클래스의 인스턴스 = 오브젝트
 
-#### Class Instance
+##### Class Instance
 
 - **인스턴스**? 추상적인 것에 대한 실체
     - 클래스를 가지고 실체화한 것
 - 자바에서는 배열(Array)도 오브젝트
 
-### 의존관계
+#### 의존관계
 
-#### Dependency
+##### Dependency
 
 - A → B : A가 B에 의존한다.
 
-#### 의존관계 2가지 관점
+##### 의존관계 2가지 관점
 
 1. **Class 사이의 의존관계(Class 레벨의 의존관계, Code 레벨의 의존관계)**
     
@@ -78,4 +82,140 @@
 2. **오브젝트 사이의 의존관계**
     - 프로그램을 실행하는 런타임 환경에서 의존관계가 만들어짐
 
-##### **⭐️  클래스 레벨의 의존관계와 런타임 레벨의 의존관계가 다를 수 있음‼️ ⭐️**
+###### **⭐️  클래스 레벨의 의존관계와 런타임 레벨의 의존관계가 다를 수 있음‼️ ⭐️**
+
+### 관심사의 분리
+#### 코드 개선 방법
+
+1. 기능을 낫게 만드는 방법
+    - 기능 추가 또는 삭제
+2. 기능은 건들지 않고 내부 코드 구조 개션하는 방법(**리팩토링**)
+
+#### 주석을 삭제
+
+주석이 나쁘다는 것이 아니지만 주석을 보지 않더라도 코드를 읽으면 이해할 수 있게 만들라는 뜻
+
+**⇒ 코드를 작성할 때 주석이 필요할 때 달아두었다가 더이상 주석이 없더라도 코드를 이해하는 데 필요가 없다면 제거를 해주는 게 좋음**
+
+```java
+// 금액 계산
+BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+
+// 유효 시간 계산
+LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30); // 30분 더하기
+```
+
+- 금액 계산
+    - `foreginCurrencyAmount` : 외환 금액
+    - `.multiply(exRate)` : 환율 곱하기
+    - `convertedAmount` : 전환된 금액
+- 유효 시간 계산
+    - `LocalDateTime.now()` : 현재 시간
+    - `.plusMinutes(30)` : 30분 더하기
+    - `validUntil` : 계산된 유효 시간
+    
+
+⇒ 위의 2가지 내용은 코드만 보더라도 어떤 내용인지 파악이 가능하기 때문에 주석을 제거함
+
+```java
+BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+```
+
+#### 관심사의 분리
+
+##### Separation of Concerns(SoC)
+
+```java
+// 환율 가져오기
+// https://open.er-api.com/v6/latest/USD
+URL url = new URL("https://open.er-api.com/v6/latest/" + currency);
+HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+String response = br.lines().collect(Collectors.joining()); // lines() : BufferedReader에서 들어오는걸 Stream 타입으로 계속 가져오게 할 수 있는 것(java8 이후)
+br.close();
+
+// ObjectMapper : JSON 컨텐츠를 Java 객체로 역직렬롸 하거나 Java 객체를 JSON으로 직렬화 할 때 사용
+ObjectMapper mapper = new ObjectMapper(); // ObjectMapper : Jackson 라이브러리의 클래스
+ExRateData data = mapper.readValue(response, ExRateData.class);
+BigDecimal exRate = data.rates().get("KRW");
+System.out.println(exRate);
+
+BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+```
+
+- 기존에 작성한 PayemtService에서는 큰 관심사가 두가지 들어음
+    1. 환율을 가져오는 것
+    2. 가져온 환율을 계산하여 유효시간을 적용하여 Payment를 반환
+    
+    ⇒ 코드를 읽고 이해하는 데 기술적인 내용과 비즈니스(업무 내용)이 혼재가 될 수 있음
+    
+- 관심사는 변경이라는 관점으로 설명할 수 있음
+    1. 환율을 가져오는 것
+        - 기술적인 이유 또는 환율을 어떻게 가져올 수 있는 가에 대한 메커니즘이 달라지면 변경될 것
+    2. 가져온 환율을 계산하여 유효시간을 적용하여 Payment를 반환
+        - 서비스 로직과 관련된 부분이 바뀌면 변경될 것
+    
+    ⇒ 변경의 이유와 시점이 다른 코드를 같이 두면 좋지 않음 → 분리!!!!!
+    
+
+##### 분리하는 가장 쉬운 방법?
+
+1. 메서드 분리(메서드 추출)
+    
+    > 인텔리제이 맥북 단축키 : opt + cmd + m
+    > 
+    
+    **분리 전**
+    
+    ```java
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+      // 환율 가져오기
+      // https://open.er-api.com/v6/latest/USD
+      URL url = new URL("https://open.er-api.com/v6/latest/" + currency);
+      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+      BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      String response = br.lines().collect(Collectors.joining()); // lines() : BufferedReader에서 들어오는걸 Stream 타입으로 계속 가져오게 할 수 있는 것(java8 이후)
+      br.close();
+    
+      // ObjectMapper : JSON 컨텐츠를 Java 객체로 역직렬롸 하거나 Java 객체를 JSON으로 직렬화 할 때 사용
+      ObjectMapper mapper = new ObjectMapper(); // ObjectMapper : Jackson 라이브러리의 클래스
+      ExRateData data = mapper.readValue(response, ExRateData.class);
+      BigDecimal exRate = data.rates().get("KRW");
+      System.out.println(exRate);
+    
+      BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+      LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+    
+      return new Payment(orderId, currency, foreginCurrencyAmount, exRate, convertedAmount, validUntil);
+    }
+    ```
+    
+    **분리 후**
+    
+    ```java
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+        BigDecimal exRate = getExRate(currency);
+        BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+        LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+    
+        return new Payment(orderId, currency, foreginCurrencyAmount, exRate, convertedAmount, validUntil);
+    }
+    
+    // 메서드로 분리
+    private static BigDecimal getExRate(String currency) throws IOException {
+        URL url = new URL("https://open.er-api.com/v6/latest/" + currency);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String response = br.lines().collect(Collectors.joining()); // lines() : BufferedReader에서 들어오는걸 Stream 타입으로 계속 가져오게 할 수 있는 것(java8 이후)
+        br.close();
+    
+        // ObjectMapper : JSON 컨텐츠를 Java 객체로 역직렬롸 하거나 Java 객체를 JSON으로 직렬화 할 때 사용
+        ObjectMapper mapper = new ObjectMapper(); // ObjectMapper : Jackson 라이브러리의 클래스
+        ExRateData data = mapper.readValue(response, ExRateData.class);
+        BigDecimal exRate = data.rates().get("KRW");
+        System.out.println(exRate);
+        return exRate;
+    }
+    ```

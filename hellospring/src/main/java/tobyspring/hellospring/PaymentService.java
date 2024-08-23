@@ -7,8 +7,9 @@ import java.time.LocalDateTime;
 public class PaymentService {
     private final ExRateProvider exRateProvider;
 
-    public PaymentService() {
-        this.exRateProvider = new WebApiExRateProvider();
+    public PaymentService(ExRateProvider exRateProvider) {
+//        this.exRateProvider = new WebApiExRateProvider(); // 의존관계 설정하는 책임
+        this.exRateProvider = exRateProvider;
     }
 
     public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {

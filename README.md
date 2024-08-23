@@ -576,7 +576,8 @@ public class PaymentService {
 
 ## 1. 클래스 분리
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a7e1e85e-d6f9-43d3-8475-0933babeaf4a/5a57315e-8eff-4c84-b101-c4fd07456ea4/image.png)
+![image](https://github.com/user-attachments/assets/a726452c-1b73-4e31-9989-2efee41c0a34)
+
 
 클래스를 변경해야 할 때 `PaymentService` 에 관련된 기능들을 모두 건드려야되는 단점이 존재
 
@@ -586,7 +587,8 @@ public class PaymentService {
 
 # 인터페이스 도입
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a7e1e85e-d6f9-43d3-8475-0933babeaf4a/6526b8c0-d1c9-487b-9682-ed75b4d56a0e/image.png)
+![image](https://github.com/user-attachments/assets/ad91c3fb-d54d-43d9-bb18-2817c4bb72a5)
+
 
 인터페이스 타입으로 `PaymentService` 쪽에서 사용하게 만들면
 

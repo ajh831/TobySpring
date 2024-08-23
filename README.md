@@ -5,19 +5,20 @@
 <hr>
 
 # 강의자료 목차
-- [섹션1-스프링 개발 시작하기](#섹션1-스프링-개발-시작하기)
+- [섹션2-스프링 개발 시작하기](#섹션2-스프링-개발-시작하기)
     - [PaymentService](#PaymentService)
-- [섹션2-오브젝트와 의존관계](#섹션2-오브젝트와-의존관계)
+- [섹션3-오브젝트와 의존관계](#섹션3-오브젝트와-의존관계)
     - [오브젝트와 의존관계](#오브젝트와-의존관계)
     - [관심사의 분리](#관심사의-분리)
     - [상속을 통한 확장](#상속을-통한-확장)
     - [클래스의 분리](#클래스의-분리)
     - [인터페이스 도입](#인터페이스-도입)
+    - [관계설정 책임의 분리](#관계설정-책임의-분리)
 <br/>
 <br/>
 <hr>
 
-# 섹션1-스프링 개발 시작하기
+# 섹션2-스프링 개발 시작하기
 # PaymentService
 ## 요구사항
 
@@ -52,7 +53,7 @@
 <br/>
 <hr>
 
-# 섹션2-오브젝트와 의존관계
+# 섹션3-오브젝트와 의존관계
 # 오브젝트와 의존관계
 ## 오브젝트
 
@@ -680,3 +681,116 @@ public class PaymentService {
 그러나 위의 코드는 상속을 통해서 구현한 것보다 못한 상황
 
 `PaymentService`의 생성자에서 **환율을 가져오는 클래스에 강하게 의존**하고 있기 때문에 어쨋든 수정해야되는 상황임(강한 결합도)
+
+<br/>
+
+# 관계설정 책임의 분리
+
+## 1. 인터페이스 도입
+
+![image](https://github.com/user-attachments/assets/0603a18c-469e-4f9a-b5e3-d06d6b38ffb9)
+
+
+디자인 패턴의 대부분이 인터페이스 구조로 이루어져 있음(70%)
+
+<br/>
+
+## 인터페이스를 사용했을 때 장점
+
+1. PaymentService가 ExRateProvider에만 의존
+    - ExRateProvider가 변경되면 PaymentService가 변경되고
+    ExRateProvider가 변경되지않으면 PaymentService가 변경되지 않음
+
+그러나
+
+생성자 내부에서 구체적인 클래스로 명시해서 객체 생성 하는 경우
+
+```java
+    public PaymentService() {
+		    // this.exRateProvider = new SimpleExRateProvider();
+        this.exRateProvider = new WebApiExRateProvider();
+    }
+```
+
+이와 같이 사용하게 되면 인터페이스가 아닌 **구체적인 클래스에 의존**하게 되어있음
+
+![image](https://github.com/user-attachments/assets/74ee5d05-6988-4148-b46b-6fc578c00a34)
+
+
+> 코드레벨의 의존관계
+
+<br/>
+
+
+`PaymentService`가 어떤 클래스의 Object를 사용하게 할 것인가가 “관계 설정”을 뜻 함
+
+(의존하는 코드는 극히 적지만 클래스 레벨에 의존하고 있는 상황)
+
+**런타임**에서는 `Object`가 `Object`를 의존하는 관계가 됨
+
+![image](https://github.com/user-attachments/assets/4a5b0d57-bac5-494f-befd-0dd4ba4a2768)
+
+
+> 오브젝트 다이어그램(런타임시 동작하는 구조를 보여줌)
+
+<br/>
+
+## 책임을 가지고 있는게 무엇인가?
+
+![image](https://github.com/user-attachments/assets/9ff06c68-f2f3-4a42-a833-35e2911b4728)
+
+
+`PaymentService`가 `WebApiExRateProvider`의 오브젝트를 사용하겠다고 결정하고 있기 때문에
+
+책음을 가진 코드가 사용할 클래스가 변경되면 `PaymentService`가 변경되는 것은 당연함
+
+<br/>
+
+## 클래스가 변경되더라도 PaymentService를 수정하지않고 재사용하는 방법?
+
+**⭐️ 의존관계를 설정하는 코드를 분리시킨다 ⭐️**
+
+![image](https://github.com/user-attachments/assets/97c9d0b6-f0bb-4ab2-831f-6f4161fe0bb6)
+
+
+> 책임을 앞단으로 보냄!
+
+<br/>
+
+
+`PaymentService`의 생성자
+
+```java
+public PaymentService(ExRateProvider exRateProvider) {
+		// this.exRateProvider = new WebApiExRateProvider(); // 의존관계 설정하는 책임
+    this.exRateProvider = exRateProvider;
+}
+```
+
+<br/>
+
+`Client`
+
+```java
+public class Client {
+    public static void main(String[] args) throws IOException {
+//        PaymentService paymentService = new PaymentService(new WebApiExRateProvider()); // 관계설정의 책임을 Client한테 넘김
+        PaymentService paymentService = new PaymentService(new SimpleExRateProvider());
+        Payment payment = paymentService.prepare(100L, "USD", BigDecimal.valueOf(50.7));
+        System.out.println(payment);
+    }
+}
+```
+
+<br/>
+
+## 결론
+
+![image](https://github.com/user-attachments/assets/f4e9be84-b9eb-4dc1-93f7-2b435f4d657f)
+
+
+1. `Client`가 `PaymentService`에서 사용할 클래스를 결정
+2. `Client`가 `PaymentService` 오브젝트를 만듦
+3. 동시에 생성자를 통해서 앞서 만든 `ExRateProvicer` 인터페이스를 구현한 클래스의 오브젝트를 `PaymentService`에 전달
+4. `Client`가 `PaymentService`의 `prepare()`를 호출
+5. `WebApiExRateProvider`의 `getExRate()`를 사용하면서 기능 작동

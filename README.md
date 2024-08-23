@@ -13,6 +13,7 @@
     - [관심사의 분리](#관심사의-분리)
     - [상속을 통한 확장](#상속을-통한-확장)
     - [클래스의 분리](#클래스의-분리)
+    - [인터페이스 도입](#인터페이스-도입)
 <br/>
 <br/>
 <hr>
@@ -568,3 +569,113 @@ public class PaymentService {
 매번 변경을 해줘야 되기 때문에 상속보다 더 좋지 않음!!!
 
 이러한 문제를 해결하기 위해서는 인터페이스를 도입하는 방법이 있음
+
+<br/>
+
+# 인터페이스 도입
+
+## 1. 클래스 분리
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a7e1e85e-d6f9-43d3-8475-0933babeaf4a/5a57315e-8eff-4c84-b101-c4fd07456ea4/image.png)
+
+클래스를 변경해야 할 때 `PaymentService` 에 관련된 기능들을 모두 건드려야되는 단점이 존재
+
+해결하기위해서는 독립적인 인터페이스를 도입하면 됨
+
+<br/>
+
+# 인터페이스 도입
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a7e1e85e-d6f9-43d3-8475-0933babeaf4a/6526b8c0-d1c9-487b-9682-ed75b4d56a0e/image.png)
+
+인터페이스 타입으로 `PaymentService` 쪽에서 사용하게 만들면
+
+메서드 이름이 달라진다고 `PaymentService`를 고쳐야되는 상황은 피할 수 있게 됨
+
+`ExRateProvider`
+
+```java
+public interface ExRateProvicer {
+    BigDecimal getWebExRate(String currency) throws IOException;
+}
+```
+
+> 참고로 인터페이스는 기본적으로 모든 메서드가 public
+> 
+
+<br/>
+
+`SimpleExRateProvider`
+
+```java
+public class SimpleExRateProvider implements ExRateProvider{
+    @Override
+    public BigDecimal getExRate(String currency) throws IOException {
+        if (currency.equals("USD")) return BigDecimal.valueOf(1000);
+
+        throw new IllegalArgumentException("지원되지 않는 통화입니다.");
+    }
+}
+```
+
+<br/>
+
+`WebApiExRateProvicer`
+
+```java
+public class WebApiExRateProvider implements ExRateProvider{
+    @Override
+    public BigDecimal getExRate(String currency) throws IOException {
+        URL url = new URL("https://open.er-api.com/v6/latest/" + currency);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String response = br.lines().collect(Collectors.joining());
+        br.close();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ExRateData data = mapper.readValue(response, ExRateData.class);
+        return data.rates().get("KRW");
+    }
+}
+```
+
+<br/>
+
+`PaymentService`
+
+```java
+public class PaymentService {
+    private final ExRateProvider exRateProvider;
+
+    public PaymentService() {
+		    // this.exRateProvider = new SimpleExRateProvider();
+        this.exRateProvider = new WebApiExRateProvider();
+    }
+
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+        BigDecimal exRate = exRateProvider.getExRate(currency);
+        BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+        LocalDateTime validUntil = LocalDateTime.now().plusMinutes(30);
+
+        return new Payment(orderId, currency, foreginCurrencyAmount, exRate, convertedAmount, validUntil);
+    }
+}
+```
+
+<br/>
+
+인터페이스를 적용하게 되면
+
+새로운 환율을 가져오는 코드를 추가하더라도 최소한의 부분만 수정하더라도 잘 작동하는 것을 위의 `PaymentService`를 통해 확인할 수 있었음
+
+하나의 클래스에서 의존하는(사용하는) 다른 클래스들이 있을 때 그 안에 인터페이스를 정해두고 인터페이스 타입으로 사용하게 만들면
+
+그 인터페이스를 구현한 다른 클래스를 추가할 때 적용해야되는 코드를 최소화 할 수 있음
+
+**⇒ 다형성 적용**
+
+<br/>
+
+그러나 위의 코드는 상속을 통해서 구현한 것보다 못한 상황
+
+`PaymentService`의 생성자에서 **환율을 가져오는 클래스에 강하게 의존**하고 있기 때문에 어쨋든 수정해야되는 상황임(강한 결합도)

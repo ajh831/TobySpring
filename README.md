@@ -14,6 +14,7 @@
     - [클래스의 분리](#클래스의-분리)
     - [인터페이스 도입](#인터페이스-도입)
     - [관계설정 책임의 분리](#관계설정-책임의-분리)
+    - [오브젝트 팩토리](#오브젝트-팩토리)
 <br/>
 <br/>
 <hr>
@@ -784,7 +785,7 @@ public class Client {
 
 <br/>
 
-## 결론
+## 관계설정 책임 분리 결론
 
 ![image](https://github.com/user-attachments/assets/f4e9be84-b9eb-4dc1-93f7-2b435f4d657f)
 
@@ -794,3 +795,135 @@ public class Client {
 3. 동시에 생성자를 통해서 앞서 만든 `ExRateProvicer` 인터페이스를 구현한 클래스의 오브젝트를 `PaymentService`에 전달
 4. `Client`가 `PaymentService`의 `prepare()`를 호출
 5. `WebApiExRateProvider`의 `getExRate()`를 사용하면서 기능 작동
+
+<br/>
+
+# 오브젝트 팩토리
+
+![image](https://github.com/user-attachments/assets/8f00b827-148d-42f1-ad09-a571d2e810c6)
+
+
+## Client로 관심사를 분리하는 경우 문제점
+
+`Client`가 관심사를 2개 가지고 있음
+
+1. `PaymentService`가 다른 클래스 오브젝트와 어떻게 관계를 맺어야 할지의 책임
+2. `PaymentService`를 이용해서 업무를 수행하는 책임
+
+```java
+public class Client {
+    public static void main(String[] args) throws IOException {
+        // 책임 1. 관계 설정
+        PaymentService paymentService = new PaymentService(new SimpleExRateProvider());
+        // 책임 2. 업무 수행
+        Payment payment = paymentService.prepare(100L, "USD", BigDecimal.valueOf(50.7));
+        System.out.println(payment);
+    }
+}
+```
+
+<br/>
+
+## 여러 관심사를 가지고 있는 경우 해결방법?
+
+관심사를 다른 클래스로 넘기면 됨
+
+![image](https://github.com/user-attachments/assets/55bb5f49-3f4e-491b-881b-14e9cb9ef354)
+
+
+- `Client`는 `PaymentService`를 이용해서 작업을 하는데 충실한 코드로 구성
+- `PaymentService`를 사용하기 위해서 준비를 시키려면 `ObjectFactory`를 사용
+    - `ObjectFactory`를 사용해서 `PaymentService`가 사용할 `PaymentService`를 얻어옴
+
+<br/>
+
+<p>$\color{#DD6565}\text{⇒ 런타임 오브젝트 사이에 의존관계를 설정하는 책임을 ObjectFactory에서 넘기자}$</p>
+
+<br/>
+
+`ObjectFacroty`
+
+```java
+public class ObjectFactory {
+    public PaymentService paymentService() {
+        return new PaymentService(new SimpleExRateProvider());
+    }
+}
+```
+
+<br/>
+
+`Client`
+
+```java
+public class Client {
+    public static void main(String[] args) throws IOException {
+        ObjectFactory objectFactory = new ObjectFactory();
+        PaymentService paymentService = objectFactory.paymentService();
+
+        // 책임 2. 업무 수행
+        Payment payment = paymentService.prepare(100L, "USD", BigDecimal.valueOf(50.7));
+        System.out.println(payment);
+    }
+}
+
+```
+
+<br/>
+
+## 추가 개선
+
+`ObjectFactory`는 현재 메서드 하나 안에 `PaymentService` 오브젝트도 만들고, `ExRateProvider` 인터페이스를 구현한 오브젝트도 만드는 2가지 관심사가 합쳐져 있음
+
+<br/>
+
+**변경 전**
+
+```java
+return new PaymentService(new SimpleExRateProvider());
+```
+
+<br/>
+
+**변경 후**
+
+```java
+public class ObjectFactory {
+    public PaymentService paymentService() {
+        return new PaymentService(exRateProvider());
+    }
+
+    public ExRateProvider exRateProvider() {
+        return new WebApiExRateProvider();
+    }
+}
+
+```
+
+이와 같이 변경하게 되면 `exRateProvider`의 구현 클래스를 변경하고 싶은 경우 빠르게 찾아갈 수 있음
+
+**메서드의 이름이 분명하기 때문**
+
+<br/>
+
+각각의 오브젝트를 만드는 2개의 메서드로 분리 후
+
+필요한 경우 메서드를 호출하여 오브젝트를 가져와 생성자에 주입하는 방식을 사용
+
+<br/>
+
+⇒ ObjectFactory에서 오브젝트를 만들때 하나의 오브젝트가 의존하는 다른 오브젝트가 있다면 정확하게 찾아와서 연결시켜주는 작업까지 수행해야 됨
+
+```java
+public class Client {
+    public static void main(String[] args) throws IOException {
+        ObjectFactory objectFactory = new ObjectFactory();
+        PaymentService paymentService = objectFactory.paymentService();
+
+        Payment payment = paymentService.prepare(100L, "USD", BigDecimal.valueOf(50.7));
+        System.out.println(payment);
+    }
+}
+
+```
+

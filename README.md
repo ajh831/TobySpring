@@ -7,14 +7,17 @@
 # 강의자료 목차
 - ## [섹션2-스프링 개발 시작하기](#섹션2-스프링-개발-시작하기)
     - ### [PaymentService](#PaymentService)
-- [섹션3-오브젝트와 의존관계](#섹션3-오브젝트와-의존관계)
-    - [오브젝트와 의존관계](#오브젝트와-의존관계)
-    - [관심사의 분리](#관심사의-분리)
-    - [상속을 통한 확장](#상속을-통한-확장)
-    - [클래스의 분리](#클래스의-분리)
-    - [인터페이스 도입](#인터페이스-도입)
-    - [관계설정 책임의 분리](#관계설정-책임의-분리)
-    - [오브젝트 팩토리](#오브젝트-팩토리)
+- ## [섹션3-오브젝트와 의존관계](#섹션3-오브젝트와-의존관계)
+    - ### [오브젝트와 의존관계](#오브젝트와-의존관계)
+    - ### [관심사의 분리](#관심사의-분리)
+    - ### [상속을 통한 확장](#상속을-통한-확장)
+    - ### [클래스의 분리](#클래스의-분리)
+    - ### [인터페이스 도입](#인터페이스-도입)
+    - ### [관계설정 책임의 분리](#관계설정-책임의-분리)
+    - ### [오브젝트 팩토리](#오브젝트-팩토리)
+    - ### [원칙과 패턴](#원칙과-패턴)
+
+
 <br/>
 <br/>
 <hr>
@@ -927,3 +930,211 @@ public class Client {
 
 ```
 
+<br/>
+
+# 원칙과 패턴
+
+- 원칙 : 객체지향 설계 원칙
+    - 관심사의 분리
+- 패천 : 객체지향 디자인 패턴
+
+<br/>
+
+# 객체지향 설계 원칙
+
+1. 개방 폐쇄 원칙
+2. 높은 응집도와 낮은 결합도
+3. 전략 패턴
+4. 제어의 역전
+
+<br/>
+
+## 개방 폐쇄 원칙     Open-Closed Principle(OCP)
+
+- 클래스나 모듈은 확장에는 열려 있어야 하고 변경에는 닫혀 있어야 함
+- 클래스가 기능을 확장할 때 클래스의 코드는 변경되지 않음
+    - 환율 정보를 가져오는 방법을 확장할 때
+    `PaymentService` 코드가 변경되지 않음
+    (**전략 패턴**에도 개방 폐쇄 원칙이 잘 적용되어 있음)
+
+<br/>
+
+## 높은 응집도와 낮은 결합도     High Coherence and low coupling
+
+- 응집도가 높다는 것은 하나의 모듈이 하나의 책임 또는 관심사에 집중되어있다는 뜻
+    - 특징 : 변화가 일어날 때 해당 모듈에서 변하는 부분이 커짐
+    - 장점 : 변화가 일어날 때 비용이 적게 듦
+        - 응집도가 낮아서 하나의 모듈에서 변화가 일어날 때 일부분만 바뀌면
+        바뀌지 않은 나머지 영역의 코드에 어떠한 영향을 주는지 검증이 필요 ⇒ 개발 비용 증가
+- 책임과 관심사가 다른 모듈과는 낮은 결합도. 즉, 느슨하게 연결된 형태를 유지하는 것이 바람직
+    - 코드레벨에서 결합도가 높다면 한가지 수정하는 경우 많은 부분이 따라서 고쳐져야 됨
+
+<br/>
+
+### 결합도가 낮은 코드
+
+![image](https://github.com/user-attachments/assets/dd4ae5fb-67c7-4644-9157-4afd985c3650)
+
+
+<br/>
+
+### 결합도가 높은 코드
+
+![image](https://github.com/user-attachments/assets/73ded978-ee5d-448f-a103-fe22bbbcb045)
+
+
+<br/>
+
+
+## 전략 패턴     Strategy Pattern
+
+- 자신의 기능 맥락(Context)에서, 필요에 따라서 변경이 필요한 알고리즘을 인터페이스를 통해 통째로 외부로 분리시키고, 이를 구현한 구체적인 알고리즘 클래스를 필요에 따라 바꿔서 사용할 수 있게 하는 디자인 패턴
+    
+    ![image](https://github.com/user-attachments/assets/568d69fb-31ed-4f95-a2bf-c94f7ac25fdc)
+
+    
+    - 알고리즘을 대표하는 인터페이스를 정의
+    - 인터페이스를 구현하는 클래스 작성
+    - 어떤 클래스의 오브젝트를 사용할지는 자신이 결정하는 대신 `Clinet`가 주입해주는 방식
+    
+- context : `PaymentService`
+- 전략 인터페이스 : `ExRateProvider`
+
+<br/>
+
+### 자바의 대표적인 전략 패턴 : Collections의 Sort
+
+**숫자 ← 오름차순 정렬**
+
+```java
+public class Sort {
+    public static void main(String[] args) {
+        List<Integer> scores = Arrays.asList(5,7,1,9,2,8);
+        Collections.sort(scores);
+
+        scores.forEach(System.out::println);
+    }
+}
+```
+
+> 출력결과]
+> 
+> 
+> 1
+> 
+> 2
+> 
+> 5
+> 
+> 7
+> 
+> 8
+> 
+> 9
+> 
+
+<br/>
+
+**문자 ← 알파벳 순 정렬(기본)**
+
+```java
+public class Sort {
+    public static void main(String[] args) {
+        List<String> scores = Arrays.asList("z", "x", "spring", "java");
+        Collections.sort(scores);
+
+        scores.forEach(System.out::println);
+    }
+}
+```
+
+> 출력결과]
+> 
+> 
+> java
+> spring
+> x
+> z
+> 
+
+<br/>
+
+**문자 ← 문자 길이 순서대로 변경하려는 경우(전략 변경)**
+
+```java
+public class Sort {
+    public static void main(String[] args) {
+        List<String> scores = Arrays.asList("z", "x", "spring", "java");
+        Collections.sort(scores, new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.length() - o2.length();
+            }
+        });
+
+        scores.forEach(System.out::println);
+    }
+}
+```
+
+```java
+public class Sort {
+    public static void main(String[] args) {
+        List<String> scores = Arrays.asList("z", "x", "spring", "java");
+        Collections.sort(scores, (o1, o2) -> o1.length() - o2.length());
+
+        scores.forEach(System.out::println);
+    }
+}
+```
+
+> 출력결과]
+> 
+> 
+> z
+> x
+> java
+> spring
+> 
+
+위와 같이 **전략 패턴**은 **프로그램을 실행하는 도중 전략을 변경하면서 사용할 수 있음**
+
+<br/>
+
+## 제어의 역전     Inversion of Control
+
+- 제어권 이전을 통한 제어관계 역전 - 프레임워크의 기본 동작 원리
+- 제어권이 누구한테 있었는가? 제어권이 어디로 이전했는가? 를 파악하면 됨
+
+ 
+<br/>
+
+
+### 제어권 보유 이전 과정을 살펴보자
+
+1. **제어권 보유 : PaymentService**
+
+![image](https://github.com/user-attachments/assets/1e2692ea-235c-4d93-82f1-408f3e871eda)
+
+
+`PaymentService`가 어떤 종류의 환율 정보를 이용할 것인지 결정하는 권한을 `new 클래스()`로 가지고 있었음
+
+<br/>
+
+2. **제어권 보유 : Client**
+
+![image](https://github.com/user-attachments/assets/dc9b808e-5eec-4a2d-a9fd-8d09ceddd50c)
+
+
+<br/>
+
+3. **제어권 보유 : ObjectFactory**
+
+![image](https://github.com/user-attachments/assets/4a2cdcb8-6b2b-4589-b501-5f0137dad33d)
+
+
+<br/>
+
+**⚠️ 주의 : FrameWork에서 말하는 제어의 역전과 다름**
+
+**내가 권한을 가지고 작업을 하던 과정이 다른 쪽으로 넘어갔다고 이해하면 됨**

@@ -10,4 +10,4 @@
 
 ## 💻강의 정리 Notion
 ### 강의 정리 본
-- [토비의 스프링 6 - 이해와 원리](https://jhoondev.notion.site/6-a124e3e4dd464dbd84c6334e98877b72)
+- [토비의 스프링 6 - 이해와 원리](https://studyharddev.notion.site/6-bea8673bab04408a91e737f1383d0f2e?pvs=4)

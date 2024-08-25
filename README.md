@@ -1138,3 +1138,66 @@ public class Sort {
 **⚠️ 주의 : FrameWork에서 말하는 제어의 역전과 다름**
 
 **내가 권한을 가지고 작업을 하던 과정이 다른 쪽으로 넘어갔다고 이해하면 됨**
+
+<br/>
+
+# 스프링 컨테이너와 의존관계 주입(Dependency Injection)
+
+![image](https://github.com/user-attachments/assets/0bd288bf-dc53-46d1-a8a5-d7634b784896)
+
+
+위의 구조에 스프링을 넣으면 어떻게 변화할까?
+
+![image](https://github.com/user-attachments/assets/f6f98c7e-fca6-4487-b738-8463ffc36317)
+
+
+ObjectFactory → BeanFactory
+
+- BeanFactory는 스프링이 제공하는 것을 사용
+    - 우리가 만든 것이 아니기 때문에 PaymentService, ExRateProvider를 사용하는 정보를 알지 못함
+
+<br/>
+
+
+![image](https://github.com/user-attachments/assets/ba5d8a87-9822-4e5a-9d3d-7d447a672890)
+
+
+BeanFactory가 ObjectFactory를 참고할 수 있도록 해줘야 됨
+
+<br/>
+
+![image](https://github.com/user-attachments/assets/a7210e0b-221f-49c2-acb8-0dbf913b9160)
+
+- **Bean** : `PaymentService`, `WebApiExRateProvider`
+- `PaymentService`는 런타임에 `WebApiExRateProvider`를 사용
+    - 여기에는 2가지 정보가 존재
+        - 어떤 클래스가 런타임에 동작하는 클래스가 될 것인가?(**Bean** 이 될 것인가?)
+        - 어떤 **Bean**이 어떤 **Bean**을 의존해서 런타임에 사용할 지 의존관계를 맺을 것인가?
+    - 위의 정보는 기존의 `ObjectFactory`안에 들어있었음
+        - 2가지의 정보를 합쳐서 **전체 Application이 어떻게 구성되어 질 것인가**라는 정보.
+        즉, **구성정보(Configuration)**이라고 함
+
+<br/>
+
+
+최종적으로 프로그램이 실행되면 아래와 같은 구조로 만들어지게 됨
+
+![image](https://github.com/user-attachments/assets/26e546b7-821e-49e1-8f6f-4bb55788c5ca)
+
+
+<br/>
+
+
+## BeanFactory
+
+![image](https://github.com/user-attachments/assets/5526ea2f-e5d3-4133-8aef-14c7cd6e938e)
+
+
+- BeanFactory = Spring
+- IoC(Inversion of Control) : 어떤 오브젝트를 사용할 것인지를 밖으로 이전 시킴(제어권 이전)
+- DI(Dependency Injection) : 외부에서 제 3의 오브젝트가 2개의 실제 Application이 동작하는데 사용할 의존관계를 생성하고 관계를 맺어주는 것(BeanFactory + ObjectFactory)
+    - 생성자를 통해서 이용할 오브젝트를 외부에서 전달
+- Container : BeanFactory가 만들어질 때 이미 PaymentService, WebApiExRateProvider를 만들어서 가지고 있음
+    - 미리 만들어두고 가지고 있기 때문에 요청할 때마다 생성하지 않아도 됨
+    - 여러 쓰레드에서 동시에 사용해도 괜찮음
+    - 단순히 만들어서 가지고 있는 것만이 아닌 만들어진 오브젝트들 사이의 관계설정 까지 함(DI Contaioner)

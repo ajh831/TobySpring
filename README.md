@@ -1175,7 +1175,7 @@ BeanFactory가 ObjectFactory를 참고할 수 있도록 해줘야 됨
         - 어떤 **Bean**이 어떤 **Bean**을 의존해서 런타임에 사용할 지 의존관계를 맺을 것인가?
     - 위의 정보는 기존의 `ObjectFactory`안에 들어있었음
         - 2가지의 정보를 합쳐서 **전체 Application이 어떻게 구성되어 질 것인가**라는 정보.
-        즉, **구성정보(Configuration)**이라고 함
+        - 즉, **구성정보(Configuration)**라고 함
 
 <br/>
 

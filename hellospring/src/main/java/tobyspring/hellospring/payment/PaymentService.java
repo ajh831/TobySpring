@@ -1,4 +1,4 @@
-package tobyspring.hellospring;
+package tobyspring.hellospring.payment;
 
 import org.springframework.stereotype.Component;
 

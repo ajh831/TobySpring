@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Clock;
-import java.time.LocalDateTime;
 
 @Component
 public class PaymentService {
@@ -18,10 +17,8 @@ public class PaymentService {
     }
 
     public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
-        BigDecimal exRate = exRateProvider.getExRate(currency);
-//        BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
-//        LocalDateTime validUntil = LocalDateTime.now(clock).plusMinutes(30);
 
-        return Payment.createPrepared(orderId, currency, foreginCurrencyAmount, exRate, LocalDateTime.now(clock));
+        return Payment.createPrepared(orderId, currency, foreginCurrencyAmount, this.exRateProvider, this.clock);
+
     }
 }

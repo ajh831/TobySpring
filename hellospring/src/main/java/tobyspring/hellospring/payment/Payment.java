@@ -1,6 +1,7 @@
 package tobyspring.hellospring.payment;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 public class Payment {
@@ -20,6 +21,26 @@ public class Payment {
         this.convertedAmount = convertedAmount;
         this.validUntil = validUntil;
     }
+
+    // 핵심 로직
+    // 생성자를 이용, FactoryMethod 이용
+    // FactoryMehthod를 이용하면 그 안에 의미있는 처리를 하는 코드도 넣을 수 있으며, 이름을 부여할 수 있음
+    // 반드시 static
+    public static Payment createPrepared(Long orderId, String currency, BigDecimal foreginCurrencyAmount, BigDecimal exRate,
+                                         LocalDateTime now) {
+        // 환율정보, foreginCurrencyAmount는 결국 paymet 안에 들어가는 정보이므로
+        // 외부에서 payment 안에 들어갈 정보를 가지고 계산을해서 결과 값을 넣어주는 것보다
+        // payment 자기가 가지고 있는 정보로 뭔가 게산하거나 수행하는 건 payment 안에 기능이 들어가있는게 좋음
+        BigDecimal convertedAmount = foreginCurrencyAmount.multiply(exRate);
+        LocalDateTime validUntil = now.plusMinutes(30);
+
+        return new Payment(orderId, currency, foreginCurrencyAmount, exRate, convertedAmount, validUntil);
+    }
+
+    public boolean isValid(Clock clock) {
+        return LocalDateTime.now(clock).isBefore(validUntil);
+    }
+
 
     public Long getOrderId() {
         return orderId;

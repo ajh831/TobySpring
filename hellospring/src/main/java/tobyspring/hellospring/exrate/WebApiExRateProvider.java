@@ -1,8 +1,9 @@
 package tobyspring.hellospring.exrate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import tobyspring.hellospring.api.ApiExcutor;
+import tobyspring.hellospring.api.ErApiExRateExtractor;
+import tobyspring.hellospring.api.ExRateExtractor;
 import tobyspring.hellospring.api.SimpleApiExecutor;
 import tobyspring.hellospring.payment.ExRateProvider;
 
@@ -16,10 +17,18 @@ public class WebApiExRateProvider implements ExRateProvider {
     @Override
     public BigDecimal getExRate(String currency) {
         String url = "https://open.er-api.com/v6/latest/" + currency;
-        return runApiForExRate(url, new SimpleApiExecutor());
+/*
+        람다식으로 콜백을 만들어서 던지면 굳이 클래스를 만들지 않아도 됨
+        return runApiForExRate(url, new SimpleApiExecutor(), response -> {
+            ObjectMapper mapper = new ObjectMapper();
+            ExRateData data = mapper.readValue(response, ExRateData.class);
+            return data.rates().get("KRW");
+        });
+*/
+        return runApiForExRate(url, new SimpleApiExecutor(), new ErApiExRateExtractor());
     }
 
-    private static BigDecimal runApiForExRate(String url, ApiExcutor apiExcutor) {
+    private static BigDecimal runApiForExRate(String url, ApiExcutor apiExcutor, ExRateExtractor exRateExtractor) {
         URI uri;
         try {
             uri = new URI(url);
@@ -35,15 +44,9 @@ public class WebApiExRateProvider implements ExRateProvider {
         }
 
         try {
-            return extractExRate(response);
+            return exRateExtractor.extract(response);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static BigDecimal extractExRate(String response) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        ExRateData data = mapper.readValue(response, ExRateData.class);
-        return data.rates().get("KRW");
     }
 }

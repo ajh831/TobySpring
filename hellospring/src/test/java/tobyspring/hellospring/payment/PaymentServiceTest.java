@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tobyspring.hellospring.exrate.WebApiExRateProvider;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -27,7 +26,7 @@ class PaymentServiceTest {
 
     @Test
     @DisplayName("prepare 메소드가 요구사항 3가지를 잘 충족했는지 검증")
-    void prepare() throws IOException {
+    void prepare() {
         PaymentService paymentService = new PaymentService(new WebApiExRateProvider(), this.clock);
 
         Payment payment = paymentService.prepare(1L, "USD", BigDecimal.TEN);
@@ -47,7 +46,7 @@ class PaymentServiceTest {
 
     @Test
     @DisplayName("금액과 관련하여 convertedAmount 계산을 정확하게 하는지 검증")
-    void convertedAmount() throws IOException {
+    void convertedAmount() {
         Clock clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
 
         testAmount(valueOf(500), valueOf(5_000), clock);
@@ -57,7 +56,7 @@ class PaymentServiceTest {
 
     @Test
     @DisplayName("시간 검증")
-    void validUntil() throws IOException {
+    void validUntil() {
         PaymentService paymentService = new PaymentService(new ExRateProviderStub(valueOf(1_000)), this.clock);
 
         Payment payment = paymentService.prepare(1L, "USD", BigDecimal.TEN);
@@ -70,7 +69,7 @@ class PaymentServiceTest {
     }
 
     @NotNull
-    private static void testAmount(BigDecimal exRate, BigDecimal convertedAmount, Clock clock) throws IOException {
+    private static void testAmount(BigDecimal exRate, BigDecimal convertedAmount, Clock clock) {
         PaymentService paymentService = new PaymentService(new ExRateProviderStub(exRate), clock);
 
         Payment payment = paymentService.prepare(1L, "USD", BigDecimal.TEN);

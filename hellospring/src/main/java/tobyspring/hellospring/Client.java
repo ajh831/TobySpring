@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 public class Client {
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) {
         BeanFactory benFactory = new AnnotationConfigApplicationContext(PaymentConfig.class);
         PaymentService paymentService = benFactory.getBean(PaymentService.class);
 

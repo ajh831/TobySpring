@@ -9,7 +9,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import tobyspring.hellospring.TestPaymentConfig;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -30,7 +29,7 @@ class PaymentServiceSpringTest {
 
     @Test
     @DisplayName("금액과 관련하여 convertedAmount 계산을 정확하게 하는지 검증")
-    void convertedAmount() throws IOException {
+    void convertedAmount() {
         // exRate: 1_000
         Payment payment = paymentService.prepare(1L, "USD", BigDecimal.TEN);
 
@@ -47,7 +46,7 @@ class PaymentServiceSpringTest {
 
     @Test
     @DisplayName("시간 검증")
-    void validUntil() throws IOException {
+    void validUntil() {
         Payment payment = paymentService.prepare(1L, "USD", BigDecimal.TEN);
 
         // validUntil이 prepare()보다 30분 뒤로 설정됐는지?

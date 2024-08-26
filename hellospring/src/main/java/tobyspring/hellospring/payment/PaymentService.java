@@ -16,7 +16,7 @@ public class PaymentService {
         this.clock = clock;
     }
 
-    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) throws IOException {
+    public Payment prepare(Long orderId, String currency, BigDecimal foreginCurrencyAmount) {
 
         return Payment.createPrepared(orderId, currency, foreginCurrencyAmount, this.exRateProvider, this.clock);
 

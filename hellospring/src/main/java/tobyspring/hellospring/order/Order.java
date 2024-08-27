@@ -1,9 +1,6 @@
 package tobyspring.hellospring.order;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 
@@ -13,6 +10,7 @@ public class Order {
     @Id @GeneratedValue
     private Long id;
 
+    @Column(unique = true)
     private String no;
 
     private BigDecimal total;

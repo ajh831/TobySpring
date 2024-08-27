@@ -21,10 +21,14 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.4'
     implementation 'org.springframework:spring-web:6.1.12'
+
+    runtimeOnly 'com.h2database:h2'
 }
 
 tasks.named('test') {

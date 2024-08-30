@@ -1,10 +1,10 @@
 package tobyspring.hellospring.payment;
 
 import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tobyspring.hellospring.api.ApiTemplate;
 import tobyspring.hellospring.exrate.WebApiExRateProvider;
 
 import java.math.BigDecimal;
@@ -27,7 +27,8 @@ class PaymentServiceTest {
     @Test
     @DisplayName("prepare 메소드가 요구사항 3가지를 잘 충족했는지 검증")
     void prepare() {
-        PaymentService paymentService = new PaymentService(new WebApiExRateProvider(), this.clock);
+        ApiTemplate apiTemplate = new ApiTemplate();
+        PaymentService paymentService = new PaymentService(new WebApiExRateProvider(apiTemplate), this.clock);
 
         Payment payment = paymentService.prepare(1L, "USD", BigDecimal.TEN);
 
@@ -68,7 +69,6 @@ class PaymentServiceTest {
         Assertions.assertThat(payment.getValidUntil()).isEqualTo(expectedValidUntil);
     }
 
-    @NotNull
     private static void testAmount(BigDecimal exRate, BigDecimal convertedAmount, Clock clock) {
         PaymentService paymentService = new PaymentService(new ExRateProviderStub(exRate), clock);
 

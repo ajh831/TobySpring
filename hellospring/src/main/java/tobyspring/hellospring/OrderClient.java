@@ -14,7 +14,7 @@ public class OrderClient {
         OrderService service = benFactory.getBean(OrderService.class);
         JpaTransactionManager transactionManager = benFactory.getBean(JpaTransactionManager.class);
 
-        Order order = service.createOrder("0100", BigDecimal.TEN);
+        Order order = service.createOrder("O100", BigDecimal.TEN);
         System.out.println("order = " + order);
 
     }

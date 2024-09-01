@@ -6,6 +6,8 @@ import tobyspring.hellospring.order.Order;
 import tobyspring.hellospring.order.OrderRepository;
 
 import javax.sql.DataSource;
+import java.util.List;
+import java.util.Optional;
 
 public class JdbcOrderRepository implements OrderRepository {
     private final JdbcClient jdbcClient;
@@ -33,5 +35,29 @@ public class JdbcOrderRepository implements OrderRepository {
         jdbcClient.sql("insert into orders (no,total,id) values (?,?,?)")
                 .params(order.getNo(), order.getTotal(), order.getId())
                 .update();
+    }
+
+    @Override
+    public Optional<Order> findById(Long id) {
+        return jdbcClient.sql("select * from orders where id = ?")
+                .param(id)  // 쿼리에서 '?'에 해당하는 매개변수로 'id'를 설정
+                .query((rs, rowNum) -> {
+                    Order order = new Order(rs.getString("no"), rs.getBigDecimal("total"));
+                    order.setId(rs.getLong("id"));
+                    return order;
+                })
+                .optional();    // 결과를 Optional로 반환
+    }
+
+    @Override
+    public List<Order> findAll() {
+        return jdbcClient.sql("select * from orders")
+                .query((rs, rowNum) -> {
+                    // RowMapper 람다식: 쿼리 결과의 각 행을 'Order' 객체로 매핑
+                    Order order = new Order(rs.getString("no"), rs.getBigDecimal("total"));
+                    order.setId(rs.getLong("id"));
+                    return order;
+                })
+                .list();    // 결과를 List로 반환
     }
 }
